@@ -1,39 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-espace-entreprise
+  name: service-espace-collaborateur
   namespace: nvne
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: service-espace-entreprise
+      app: service-espace-collaborateur
   template:
     metadata:
       labels:
-        app: service-espace-entreprise
+        app: service-espace-collaborateur
     spec:
       # serviceAccountName: nvne-user-service-ksa
       containers:
-        - name: service-espace-entreprise
-          image: gcr.io/stellar-spark-300508/service-espace-entreprise:0.0.5
+        - name: service-espace-collaborateur
+          image: gcr.io/single-actor-306917/service-espace-collaborateur:0.0.1
           ports:
             - containerPort: 8081
           env:
           - name: DB_USER
             valueFrom:
               secretKeyRef:
-                name: pg-csql-db-credentials
+                name: nvne-pgdb-credentials
                 key: username
           - name: DB_PASS
             valueFrom:
               secretKeyRef:
-                name: pg-csql-db-credentials
+                name: nvne-pgdb-credentials
                 key: password
           - name: DB_NAME
             valueFrom:
               secretKeyRef:
-                name: pg-csql-db-credentials
+                name: nvne-pgdb-credentials
                 key: database
         # [END cloud_sql_proxy_k8s_secrets]
         # [START cloud_sql_proxy_k8s_container]
@@ -49,7 +49,7 @@ spec:
 
             # Replace DB_PORT with the port the proxy should listen on
             # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
-            - "-instances=stellar-spark-300508:us-central1:rnsks6xfs9urrngn=tcp:5432"
+            - "-instances=single-actor-306917:us-central1:nvne-db-instance-small=tcp:5432"
             # This flag specifies where the service account key can be found
             - "-credential_file=/secrets/service_account.json"
           securityContext:
@@ -57,10 +57,10 @@ spec:
             # "nonroot" user and group (uid: 65532) by default.
             runAsNonRoot: true
           volumeMounts:
-          - name: nvne-sa-secret-volume
+          - name: cloudsql-sa-credentials-volume
             mountPath: /secrets/
             readOnly: true
       volumes:
-      - name: nvne-sa-secret-volume
+      - name: cloudsql-sa-credentials-volume
         secret:
-          secretName: nvne-sa-credentials
+          secretName: cloudsql-sa-credentials
